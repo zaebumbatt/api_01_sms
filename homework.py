@@ -5,7 +5,6 @@ import requests
 from dotenv import load_dotenv
 from twilio.rest import Client
 
-
 load_dotenv()
 
 VK_TOKEN = os.getenv('VK_TOKEN')
@@ -14,23 +13,39 @@ TWILIO_TOKEN = os.getenv('TWILIO_TOKEN')
 NUMBER_FROM = os.getenv('NUMBER_FROM')
 NUMBER_TO = os.getenv('NUMBER_TO')
 
+URL = 'https://api.vk.com/method/users.get'
+VERSION = 5.92
+
+CLIENT = Client(TWILIO_SID, TWILIO_TOKEN)
+
 
 def get_status(user_id):
-    url = 'https://api.vk.com/method/users.get'
     params = {
         'user_ids': user_id,
-        'v': 5.92,
+        'v': VERSION,
         'access_token': VK_TOKEN,
         'fields': 'online',
     }
-    response = requests.post(url, params=params)
-    user_status = response.json()['response'][0]['online']
-    return user_status
+    try:
+        response = requests.post(URL, params=params)
+    except requests.exceptions.HTTPError:
+        print('HTTP Error')
+    except requests.exceptions.ConnectionError:
+        print('Connecting Error')
+    except requests.exceptions.Timeout:
+        print('Timeout Error')
+    except requests.exceptions.RequestException:
+        print('Unknown Error')
+    else:
+        user_status = response.json().get('response')
+        if user_status is None:
+            print('User does not exist')
+        else:
+            return user_status[0]['online']
 
 
 def sms_sender(sms_text):
-    client = Client(TWILIO_SID, TWILIO_TOKEN)
-    message = client.messages.create(
+    message = CLIENT.messages.create(
         body=sms_text,
         from_=NUMBER_FROM,
         to=NUMBER_TO,
