@@ -13,7 +13,7 @@ TWILIO_TOKEN = os.getenv('TWILIO_TOKEN')
 NUMBER_FROM = os.getenv('NUMBER_FROM')
 NUMBER_TO = os.getenv('NUMBER_TO')
 
-URL = 'https://api.vk.com/method/users.get'
+URL = 'https://api.vk.com/method/{}'
 VERSION = 5.92
 
 CLIENT = Client(TWILIO_SID, TWILIO_TOKEN)
@@ -27,7 +27,7 @@ def get_status(user_id):
         'fields': 'online',
     }
     try:
-        response = requests.post(URL, params=params)
+        response = requests.post(URL.format('users.get'), params=params)
     except requests.exceptions.HTTPError:
         print('HTTP Error')
     except requests.exceptions.ConnectionError:
